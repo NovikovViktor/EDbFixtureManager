@@ -1,3 +1,5 @@
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/NovikovViktor/EDbFixtureManager/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/NovikovViktor/EDbFixtureManager/?branch=master)
+
 EDbFixtureManager v.1.0.1
 ==================================
 EDbFixtureManager - is simple tool for manage and use fixtures with Yii framework.
