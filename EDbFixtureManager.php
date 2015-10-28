@@ -71,7 +71,7 @@ class EDbFixtureManager extends CConsoleCommand
         $fixtures = require_once $file; // require that file with fixtures, will be array
         $errorList = array(); // create array what will consist model errors
 
-        if ($truncateMode == true) { // if truncated mode ON
+        if ($truncateMode) { // if truncated mode ON
             echo "\033[34m Wait database truncating... \033[0m \n\n";
             require_once $this->php_sql_parser; // require sql parser
             $keys = array(); // prepare array for store FK`s data
@@ -81,19 +81,20 @@ class EDbFixtureManager extends CConsoleCommand
                 $parsed = $parser->parse($result['Create Table']); //parse sql create statement
                 $table = $parsed['TABLE']['base_expr']; // get table name
                 foreach ($parsed['TABLE']['create-def']['sub_tree'] as $key => $column_def) { // run over all columns of the table
-                    if ($column_def['expr_type'] == 'foreign-key') { // check if column is FOREIGN KEY
-                        $fkName = $column_def['sub_tree'][0]['sub_tree']['base_expr']; // get FOREIGN KEY name
-                        Yii::app()->db->createCommand()->dropForeignKey(str_replace('`', '', $fkName), str_replace('`', '', $table)); // frop FOREIGN KEY
-                        $keys[] = array( // set FOREIGN KEY data to be recreated
-                            'name' => str_replace('`', '', $column_def['sub_tree'][0]['sub_tree']['base_expr']),
-                            'table' => str_replace('`', '', $table),
-                            'column' => $column_def['sub_tree'][3]['sub_tree'][0]['no_quotes'],
-                            'ref_table' => $column_def['sub_tree'][4]['sub_tree'][1]['no_quotes'],
-                            'ref_column' => $column_def['sub_tree'][4]['sub_tree'][2]['sub_tree'][0]['no_quotes'],
-                            'update' => $column_def['sub_tree'][4]['sub_tree'][5]['base_expr'],
-                            'delete' => $column_def['sub_tree'][4]['sub_tree'][5]['base_expr'],
-                        );
+                    if ($column_def['expr_type'] != 'foreign-key') { // check if column is FOREIGN KEY
+                        continue;
                     }
+                    $fkName = $column_def['sub_tree'][0]['sub_tree']['base_expr']; // get FOREIGN KEY name
+                    Yii::app()->db->createCommand()->dropForeignKey(str_replace('`', '', $fkName), str_replace('`', '', $table)); // frop FOREIGN KEY
+                    $keys[] = array( // set FOREIGN KEY data to be recreated
+                        'name'       => str_replace('`', '', $column_def['sub_tree'][0]['sub_tree']['base_expr']),
+                        'table'      => str_replace('`', '', $table),
+                        'column'     => $column_def['sub_tree'][3]['sub_tree'][0]['no_quotes'],
+                        'ref_table'  => $column_def['sub_tree'][4]['sub_tree'][1]['no_quotes'],
+                        'ref_column' => $column_def['sub_tree'][4]['sub_tree'][2]['sub_tree'][0]['no_quotes'],
+                        'update'     => $column_def['sub_tree'][4]['sub_tree'][5]['base_expr'],
+                        'delete'     => $column_def['sub_tree'][4]['sub_tree'][5]['base_expr'],
+                    );
                 }
             }
             foreach (Yii::app()->db->schema->getTables() as $tableSchema) { // after drop all FK`s truncate each table
