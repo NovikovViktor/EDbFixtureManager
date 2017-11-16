@@ -1,23 +1,16 @@
 <?php
-/**
- * EDbFixtureManager
- * @author Viktor Novikov <viktor.novikov95@gmail.com>
- * @link https://github.com/NovikovViktor
- * @version 1.0.2
- */
 
 /**
- * EDbFixtureManager represent the console command what may help you to manage your fixtures.
+ * EDbFixtureManager represent the console command which helps you to manage your basic fixtures.
  * Available command properties:
- *    pathToFixtures - path to your fixtures file, default try to find in directory of console command
- *    modelsFolder - path to folder where your models classes lay, default `application.models.*`
- *    php_sql_parser - path to PHPSQLParser class file
+ *    pathToFixtures - path to your fixtures file
+ *    modelsFolder   - path to folder where your models classes lay, default to `application.models.*`
+ *    php_sql_parser - path to PHPSQLParser class file (optional)
  *
  * Additions:
- * 1) All attributes what you want to assign to certain model instance,
- * must be defined with `safe` validation rule;
+ * 1) All attributes you want to fill via fixtures data, must be defined with `safe` validation rule (`rules()` method);
  * 2) Don't forget configure `tablePrefix` option for `db` connection definition;
- * 3) Check for permission on files
+ * 3) Your tables will be purged when you loading fixtures;
  *
  * For more complex info about usage, see README.md
  */
