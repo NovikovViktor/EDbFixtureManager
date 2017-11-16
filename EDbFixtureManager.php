@@ -41,13 +41,7 @@ class EDbFixtureManager extends CConsoleCommand
         }
 
         // import models classes to make available create new instances
-        if (is_array($this->modelsFolder)) {
-            foreach ($this->modelsFolder as $folder) {
-                Yii::import($folder); //import each folder form array
-            }
-        } else {
-            Yii::import(empty($this->modelsFolder) ? 'application.models.*' : $this->modelsFolder);
-        }
+        $this->importModels();
 
         $fixtures  = require_once $this->pathToFixtures; // require that file with fixtures, will be array
         $errorList = array();
@@ -57,24 +51,12 @@ class EDbFixtureManager extends CConsoleCommand
             foreach ($instances as $key => $instance) { // go through all instances for certain model, and save it into db
                 $model = new $modelClass();
                 $model->attributes = $instances[$key];
-                if (!$model->save()) { // if model can't be saved append errors into error list array
-                    $errorList[] = $model->getErrors();
-                }
+                $model->save();
+                $errorList[] = $model->getErrors();
             }
         }
 
-        if (!empty($errorList)) { // if error list not empty
-            echo "\033[31m Validation errors occurs during loading the fixtures, some fixtures wasn't loaded to database \033[0m  \n
-                    \033[33m  The next errors occur \033[0m \n";
-            foreach ($errorList as $errors) { // run over all errors and display error what occur during saving into db
-                foreach ($errors as $error) {
-                    foreach ($error as $value) {
-                        echo "\033[37;41m" . $value . "\033[0m   \n"; //display error
-                    }
-                }
-            }
-            die;
-        }
+        $this->outputErrors($errorList);
 
         echo "\033[37;42m All fixtures loaded properly \033[0m \n";
     }
@@ -86,9 +68,41 @@ class EDbFixtureManager extends CConsoleCommand
      */
     public function getHelp()
     {
-        $output = "\033[34m This command will allow you to manage your fixtures in a simple way.
- Be careful all rows from database will be removed! \033[0m \n\n";
+        $output = "\033[34m This command will allow you to manage your fixtures in a simple way. 
+        Be careful all rows from database will be removed! \033[0m \n\n";
 
         return $output . parent::getHelp();
+    }
+
+    private function importModels()
+    {
+        if (is_array($this->modelsFolder)) {
+            foreach ($this->modelsFolder as $folder) {
+                Yii::import($folder);
+            }
+        } else {
+            Yii::import(empty($this->modelsFolder) ? 'application.models.*' : $this->modelsFolder);
+        }
+    }
+
+    /**
+     * @param $errorList
+     */
+    private function outputErrors($errorList)
+    {
+        if (empty($errorList)) { // if error list not empty
+            return;
+        }
+
+        echo "\033[31m Validation errors occurs during loading the fixtures, some fixtures wasn't loaded to database \033[0m  \n
+                \033[33m  The next errors occur \033[0m \n";
+        foreach ($errorList as $errors) { // run over all errors and display error what occur during saving into db
+            foreach ($errors as $error) {
+                foreach ($error as $value) {
+                    echo "\033[37;41m" . $value . "\033[0m   \n"; //display error
+                }
+            }
+        }
+        die;
     }
 }
